@@ -10,8 +10,12 @@ const { BigNumber } = require('ethers');
 const API_KEY = process.env.LIGHTHOUSE_API_KEY;
 const WEB3_FILES_PATH = process.env.WEB3_FILES_PATH || '.';
 const today = new Date();
+const localDateString = today.toLocaleString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const [datePart, timePart] = localDateString.split(', ');
+const [day, month, year] = datePart.split('/');
+const [hours, minutes, seconds] = timePart.split(':');
 const backupDir = path.join(os.homedir(), 'backups');
-const archiveFileName = `backup-${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}-${today.getHours()}-${today.getMinutes()}-${today.getSeconds()}.zip`;
+const archiveFileName = `backup-${year}-${month}-${day}-${hours}-${minutes}-${seconds}.zip`;
 const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
