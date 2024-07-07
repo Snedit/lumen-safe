@@ -92,30 +92,31 @@ const abi = [
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 async function backupFiles() {
-  try {
-    // Create backup directory if it doesn't exist
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir);
-    }
-
-    // Compress the Web3 files
-    await zip(WEB3_FILES_PATH, ARCHIVE_PATH);
-
-    // Upload to Lighthouse and get the CID
-    const response = await lighthouse.upload(ARCHIVE_PATH, API_KEY);
-    const cid = response.Hash;
-    console.log('Backup completed. File CID:', cid);
-
-    // Store the backup metadata on Polygon
-    const tx = await contract.addBackup(cid);
-    await tx.wait();
-    console.log('Backup metadata stored on Polygon.');
-
-    // Clean up the archive file
-    fs.unlinkSync(ARCHIVE_PATH);
-  } catch (error) {
-    console.error('Backup failed:', error);
+	try {
+	  if (!fs.existsSync(backupDir)) {
+		fs.mkdirSync(backupDir);
+	  }
+  
+	  await zip(WEB3_FILES_PATH, ARCHIVE_PATH);
+  
+	  console.log(`Uploading ${ARCHIVE_PATH} to Lighthouse...`);
+	  const response = await lighthouse.upload(ARCHIVE_PATH, API_KEY);
+	  console.log('Lighthouse response:', response);
+  
+	  const cid = response.Hash;
+	  if (!cid) {
+		throw new Error(`CID is undefined. Response from Lighthouse: ${JSON.stringify(response)}`);
+	  }
+	  console.log('Backup completed. File CID:', cid);
+  
+	  const tx = await contract.addBackup(cid);
+	  await tx.wait();
+	  console.log('Backup metadata stored on Polygon.');
+  
+	  fs.unlinkSync(ARCHIVE_PATH);
+	} catch (error) {
+	  console.error('Backup failed:', error);
+	}
   }
-}
 
 module.exports = { backupFiles };
