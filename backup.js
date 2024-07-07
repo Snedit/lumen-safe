@@ -103,7 +103,7 @@ async function backupFiles() {
 	  const response = await lighthouse.upload(ARCHIVE_PATH, API_KEY);
 	  console.log('Lighthouse response:', response);
   
-	  const cid = response.Hash;
+	  const cid = response.data.Hash;
 	  if (!cid) {
 		throw new Error(`CID is undefined. Response from Lighthouse: ${JSON.stringify(response)}`);
 	  }
