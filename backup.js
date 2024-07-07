@@ -1,18 +1,17 @@
 // backup.js
 const lighthouse = require('@lighthouse-web3/sdk');
 const { ethers } = require('ethers');
-const shell = require('shelljs');
+const { zip } = require('zip-a-folder');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const API_KEY = process.env.LIGHTHOUSE_API_KEY;
-
 const WEB3_FILES_PATH = process.env.WEB3_FILES_PATH || '.';
 const today = new Date();
-const backupDir = './backups';
-const archiveFileName = `backup-${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.tar.gz`;
-const ARCHIVE_PATH = `${backupDir}/${archiveFileName}`;
-// const ARCHIVE_PATH = './archive.tar.gz';
+const backupDir = path.join(os.homedir(), 'backups');
+const archiveFileName = `backup-${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.zip`;
+const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
 const PRIVATE_KEY = process.env.PRIVATE_KEY;  // Private key for signing transactions
@@ -94,13 +93,17 @@ const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 async function backupFiles() {
   try {
+    // Create backup directory if it doesn't exist
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir);
+    }
+
     // Compress the Web3 files
-     shell.exec(`tar -czvf ${ARCHIVE_PATH} ${WEB3_FILES_PATH}`);
+    await zip(WEB3_FILES_PATH, ARCHIVE_PATH);
 
     // Upload to Lighthouse and get the CID
-    const response = await lighthouse.upload(WEB3_FILES_PATH, API_KEY);
+    const response = await lighthouse.upload(ARCHIVE_PATH, API_KEY);
     const cid = response.Hash;
-    // const cid = 1234;
     console.log('Backup completed. File CID:', cid);
 
     // Store the backup metadata on Polygon
