@@ -26,7 +26,7 @@ const options = {
   const [hour, minute, second] = time.split(':');
 
 const backupDir = path.join(os.homedir(), 'backups');
-const archiveFileName = `backup-${year}-${month}-${day}-${hours}-${minutes}-${seconds}.zip`;
+const archiveFileName = `backup-${year}-${month}-${day}-${hour}-${minute}-${second}.zip`;
 const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
