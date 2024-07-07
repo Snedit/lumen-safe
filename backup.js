@@ -89,7 +89,7 @@ const abi = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-];  // Add the updated ABI here
+];  
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 async function backupFiles() {
@@ -115,7 +115,7 @@ async function backupFiles() {
         const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
         
         const txOptions = {
-            gasLimit: ethers.utils.hexlify(1000000), // Set a sufficient gas limit
+            gasLimit: ethers.utils.hexlify(1000000), 
             maxPriorityFeePerGas,
             maxFeePerGas
         };
