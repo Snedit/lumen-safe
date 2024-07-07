@@ -16,8 +16,6 @@ const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
 const PRIVATE_KEY = process.env.PRIVATE_KEY;  // Private key for signing transactions
-const gasLimit = BigNumber.from('500000'); 
-const maxFeePerGas = BigNumber.from('2000000000'); 
 
 const provider = new ethers.providers.JsonRpcProvider('https://rpc-amoy.polygon.technology/');
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
@@ -113,13 +111,16 @@ async function backupFiles() {
 	  console.log('Backup completed. File CID:', cid);
 
 	  const gasPrice = await provider.getGasPrice();
-	  const maxPriorityFeePerGas = ethers.utils.parseUnits('30', 'gwei'); 
-	  const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
+        const maxPriorityFeePerGas = ethers.utils.parseUnits('30', 'gwei'); 
+        const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
+        
+        const txOptions = {
+            gasLimit: ethers.utils.hexlify(1000000), // Set a sufficient gas limit
+            maxPriorityFeePerGas,
+            maxFeePerGas
+        };
   
-	  const tx = await contract.addBackup(cid, {
-		gasLimit: gasLimit,
-		maxFeePerGas: maxFeePerGas,
-	  });
+	  const tx = await contract.addBackup(cid,txOptions);
 	  await tx.wait();
 	  console.log('Backup metadata stored on Polygon.');
   
