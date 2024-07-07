@@ -11,7 +11,7 @@ const API_KEY = process.env.LIGHTHOUSE_API_KEY;
 const WEB3_FILES_PATH = process.env.WEB3_FILES_PATH || '.';
 const today = new Date();
 const backupDir = path.join(os.homedir(), 'backups');
-const archiveFileName = `backup-${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.zip`;
+const archiveFileName = `backup-${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}-${today.getHours()}-${today.getMinutes()}-${today.getSeconds()}.zip`;
 const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
