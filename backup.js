@@ -108,8 +108,16 @@ async function backupFiles() {
 		throw new Error(`CID is undefined. Response from Lighthouse: ${JSON.stringify(response)}`);
 	  }
 	  console.log('Backup completed. File CID:', cid);
+
+	  const gasPrice = await provider.getGasPrice();
+	  const maxPriorityFeePerGas = ethers.utils.parseUnits('30', 'gwei'); 
+	  const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
   
-	  const tx = await contract.addBackup(cid);
+	  const tx = await contract.addBackup(cid, {
+		maxPriorityFeePerGas,
+		maxFeePerGas,
+		gasLimit: 3000000 
+	  });
 	  await tx.wait();
 	  console.log('Backup metadata stored on Polygon.');
   
