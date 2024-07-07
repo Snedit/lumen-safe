@@ -1,0 +1,19 @@
+{
+  "name": "lumen-safe",
+  "version": "1.0.8",
+  "description": "A package to set up CI/CD pipeline for backing up Web3 files to Lighthouse storage.",
+  "main": "index.js",
+  "bin": {
+    "lumen-safe": "./index.js"
+  },
+  "scripts": {
+    "backup": "node backup.js"
+  },
+  "dependencies": {
+    "@lighthouse-web3/sdk": "^0.3.3",
+    "ethers": "^5.4.0",
+    "shelljs": "^0.8.4"
+  },
+  "author": "",
+  "license": "ISC"
+}
