@@ -4,7 +4,7 @@ const { ethers } = require('ethers');
 const { zip } = require('zip-a-folder');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
+const os = require('os'); 
 const { BigNumber } = require('ethers');
 
 const API_KEY = process.env.LIGHTHOUSE_API_KEY;
