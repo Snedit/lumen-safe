@@ -4,13 +4,11 @@ const fs = require('fs');
 const { backupFiles } = require('./backup');
 
 const setupPipeline = () => {
-
   const backupsDir = './backups';
   if (!fs.existsSync(backupsDir)) {
     fs.mkdirSync(backupsDir);
     console.log(`Created 'backups' directory.`);
   }
-
 
   const workflowContent = `
 name: Backup to Lighthouse
@@ -34,15 +32,24 @@ jobs:
   console.log('GitHub Actions workflow created. Add your secrets to the repository.');
 };
 
+const removePipeline = () => {
+  const workflowPath = '.github/workflows/lighthouse.yml';
+  if (fs.existsSync(workflowPath)) {
+    fs.unlinkSync(workflowPath);
+    console.log('GitHub Actions workflow removed.');
+  } else {
+    console.log('No GitHub Actions workflow found to remove.');
+  }
+};
+
 // CLI command
 const command = process.argv[2];
 if (command === 'setup-pipeline') {
   setupPipeline();
-} 
-else if(command == "backup")
-  {
-    backupFiles();
-  }
-else {
-  console.log('Unknown command. Use "setup-pipeline" to set up the GitHub Actions workflow.');
+} else if (command === 'backup') {
+  backupFiles();
+} else if (command === 'remove-pipeline') {
+  removePipeline();
+} else {
+  console.log('Unknown command. Use "setup-pipeline" to set up the GitHub Actions workflow or "remove-pipeline" to remove it.');
 }
