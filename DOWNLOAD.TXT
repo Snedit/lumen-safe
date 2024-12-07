@@ -1,0 +1,8 @@
+async function downloadBlob(blobId) {
+  const readUrl = `${ADDRESS}/v1/${blobId}`;
+  const response = await axios.get(readUrl, { responseType: 'arraybuffer' });
+  if (response.status !== 200) {
+    throw new Error(`Failed to download blob: ${response.statusText}`);
+  }
+  return response.data;
+}

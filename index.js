@@ -44,11 +44,12 @@ Project by:
 
 const setupLighthousePipeline = () => {
   const workflowsDir = '.github/workflows';
-  const lighthouseWorkflowPath = `${workflowsDir}/lighthouse.yml`;
+  const lighthouseWorkflowPath = `${workflowsDir}/walrus.yml`;
 
   if (!fs.existsSync(workflowsDir)) {
     fs.mkdirSync(workflowsDir, { recursive: true });
     console.log(`Created '.github/workflows' directory.`);
+    console.log("help us walrus!");
   }
 
   const workflowContent = `
@@ -379,3 +380,5 @@ if (command === 'setup-pipeline') {
 } else {
   console.log('Unknown command. Use "lumen-safe help" to display available commands.');
 }
+
+// changes

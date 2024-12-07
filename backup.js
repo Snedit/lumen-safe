@@ -1,12 +1,16 @@
-const lighthouse = require('@lighthouse-web3/sdk');
-const { JsonRpcProvider, Wallet, Contract, utils } = require('ethers');
+const axios = require('axios');
 const { zip } = require('zip-a-folder');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { JsonRpcProvider, Wallet, Contract, utils } = require('ethers');
 
-const API_KEY = process.env.LIGHTHOUSE_API_KEY;
+const ADDRESS = "https://publisher.walrus-testnet.walrus.space"; // Replace with Walrus service address
+const EPOCHS = "5";
 const WEB3_FILES_PATH = process.env.WEB3_FILES_PATH || '.';
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+
 const today = new Date();
 const options = {
   timeZone: 'Asia/Kolkata',
@@ -16,7 +20,7 @@ const options = {
   hour: '2-digit',
   minute: '2-digit',
   second: '2-digit',
-  hour12: false
+  hour12: false,
 };
 const localDateString = today.toLocaleString('en-GB', options);
 const [date, time] = localDateString.split(', ');
@@ -27,83 +31,48 @@ const backupDir = path.join(os.homedir(), 'backups');
 const archiveFileName = `backup-${year}-${month}-${day}-${hour}-${minute}-${second}.zip`;
 const ARCHIVE_PATH = path.join(backupDir, archiveFileName);
 
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;  // Deployed contract address
-const PRIVATE_KEY = process.env.PRIVATE_KEY;  // Private key for signing transactions
-
 const provider = new JsonRpcProvider('https://rpc-amoy.polygon.technology/');
 const wallet = new Wallet(PRIVATE_KEY, provider);
 const abi = [
   {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "cid",
-        "type": "string"
-      }
-    ],
+    "inputs": [{ "internalType": "string", "name": "cid", "type": "string" }],
     "name": "addBackup",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
+    "type": "function",
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "cid",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "BackupAdded",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
+    "inputs": [{ "internalType": "address", "name": "user", "type": "address" }],
     "name": "getBackups",
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "uint256",
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "cid",
-            "type": "string"
-          }
+          { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+          { "internalType": "string", "name": "cid", "type": "string" },
         ],
         "internalType": "struct BackupStorage.Backup[]",
         "name": "",
-        "type": "tuple[]"
-      }
+        "type": "tuple[]",
+      },
     ],
     "stateMutability": "view",
-    "type": "function"
-  }
+    "type": "function",
+  },
 ];
 const contract = new Contract(CONTRACT_ADDRESS, abi, wallet);
+
+async function uploadBlob(data) {
+  const storeUrl = `${ADDRESS}/v1/store?epochs=${EPOCHS}`;
+  const response = await axios.put(storeUrl, data, {
+    headers: { 'Content-Type': 'application/octet-stream' },
+  });
+  if (response.status !== 200) {
+    throw new Error(`Failed to upload blob: ${response.statusText}`);
+  }
+  return response.data.newlyCreated.blobObject.blobId;
+}
+
+
 
 async function backupFiles() {
   try {
@@ -113,32 +82,27 @@ async function backupFiles() {
 
     await zip(WEB3_FILES_PATH, ARCHIVE_PATH);
 
-    console.log(`Uploading ${ARCHIVE_PATH} to Lighthouse...`);
-    const response = await lighthouse.upload(ARCHIVE_PATH, API_KEY);
-    console.log('Lighthouse response:', response);
+    console.log(`Uploading ${ARCHIVE_PATH} to Walrus...`);
+    const fileData = fs.readFileSync(ARCHIVE_PATH);
+    const blobId = await uploadBlob(fileData);
+    console.log('Walrus response: Blob ID:', blobId);
 
-    const cid = response.data.Hash;
-    if (!cid) {
-      throw new Error(`CID is undefined. Response from Lighthouse: ${JSON.stringify(response)}`);
-    }
-    console.log('Backup completed. File CID:', cid);
-
-    // Get gas price and calculate maxFeePerGas and maxPriorityFeePerGas
+    // Store blobId in the smart contract
     const gasPrice = await provider.getGasPrice();
     const maxPriorityFeePerGas = utils.parseUnits('30', 'gwei');
     const maxFeePerGas = gasPrice.add(maxPriorityFeePerGas);
 
     const txOptions = {
-      gasLimit: utils.hexlify(1000000),  // Convert to hex
+      gasLimit: utils.hexlify(1000000),
       maxPriorityFeePerGas,
-      maxFeePerGas
+      maxFeePerGas,
     };
 
-    const tx = await contract.addBackup(cid, txOptions);
+    const tx = await contract.addBackup(blobId, txOptions);
     await tx.wait();
     console.log('Backup metadata stored on Polygon.');
 
-    fs.unlinkSync(ARCHIVE_PATH); // Clean up the archive after successful backup
+    fs.unlinkSync(ARCHIVE_PATH); // Clean up the archive
   } catch (error) {
     console.error('Backup failed:', error);
   }
