@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+require('dotenv').config();
+const chalk = require('chalk');
+
 const shell = require('shelljs');
 const fs = require('fs');
 const { backupFiles } = require('./backup');

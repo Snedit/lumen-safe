@@ -11,7 +11,7 @@ const WALRUS_ADDRESS = process.env.WALRUS_ADDRESS || "https://publisher.walrus-t
 const EPOCHS = process.env.EPOCHS || "5";
 const WEB3_FILES_PATH = process.env.WEB3_FILES_PATH || '.';
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS ;
 const RPC_URL = process.env.RPC_URL || 'https://rpc-amoy.polygon.technology/';
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB per chunk (adjust as necessary)
 

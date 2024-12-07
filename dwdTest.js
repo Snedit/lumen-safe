@@ -31,7 +31,7 @@ async function downloadBlob(blobId) {
 }
 
 // Example usage
-const blobId = "4HJZzZhjrL07fmSMOl23EGDTwUey5zmGezOGZg0Cw7k"; // Replace with the actual Blob ID
+const blobId = "EK9h1exHtiTHc32EwAqIGLMyqvUzGYFAZFgwWm_rNfY"; // Replace with the actual Blob ID
 downloadBlob(blobId)
   .then((filePath) => {
     console.log(`Blob successfully saved as zip at: ${filePath}`);
