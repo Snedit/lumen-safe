@@ -18,6 +18,39 @@ const displayAsciiArt = () => {
     console.log(chalk.blueBright(data));
   });
 };
+const configPath = path.join(os.homedir(), 'lumen_safe_config.json');
+
+const loadConfig = () => {
+  if (fs.existsSync(configPath)) {
+    return JSON.parse(fs.readFileSync(configPath));
+  }
+  return { email: null, networks: {} };
+};
+
+const saveConfig = (config) => {
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+};
+const setupCredentials = () => {
+  const config = loadConfig();
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  rl.question('Enter your email ID: ', (email) => {
+    console.log(`You entered: ${email}`);
+    rl.question('Confirm saving this email ID (yes/no)? ', (confirmation) => {
+      if (confirmation.toLowerCase() === 'yes') {
+        config.email = email;
+        saveConfig(config);
+        console.log(chalk.greenBright('Email ID saved successfully!'));
+      } else {
+        console.log(chalk.yellow('Email ID not saved.'));
+      }
+      rl.close();
+    });
+  });
+};
 
 
 const displayCredits = () => {
@@ -188,14 +221,55 @@ const displayHelp = () => {
     - Deletes an existing blockchain network configuration.
 `));
 
-  console.log(chalk.bold.white('\nTruffle Integration Commands:'));
+  console.log(chalk.bold.white('\nHardhat Integration Commands:'));
   console.log(chalk.blueBright(`
-  lumen-safe setuptruffle <contract_name> <chain_name>
-    - Creates a GitHub Actions workflow to deploy a smart contract using Truffle.
-    - Example: lumen-safe setuptruffle MyContract polygon
+  lumen-safe setuphardhat <contract_name> <chain_name>
+    - Creates a GitHub Actions workflow to deploy a smart contract using Hardhat.
+    - Example: lumen-safe setuphardhat MyContract polygon
 `));
 
   console.log(chalk.yellowBright('\nFor further details, refer to the documentation or contact support.'));
+};
+
+const saveChain = () => {
+  const config = loadConfig();
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  rl.question('Enter network name: ', (networkName) => {
+    rl.question('Enter network ID: ', (networkID) => {
+      rl.question('Enter RPC URL: ', (rpcURL) => {
+        config.networks[networkName] = { networkID, rpcURL };
+        saveConfig(config);
+        console.log(chalk.greenBright(`Network "${networkName}" saved successfully!`));
+        rl.close();
+      });
+    });
+  });
+};
+const deleteChain = () => {
+  const config = loadConfig();
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  console.log(chalk.cyan('Saved Networks:'));
+  Object.keys(config.networks).forEach((network, idx) => {
+    console.log(`${idx + 1}. ${network}`);
+  });
+  rl.question('Enter the name of the network to delete: ', (networkName) => {
+    if (config.networks[networkName]) {
+      delete config.networks[networkName];
+      saveConfig(config);
+      console.log(chalk.greenBright(`Network "${networkName}" deleted successfully!`));
+    } else {
+      console.log(chalk.red(`Network "${networkName}" not found.`));
+    }
+    rl.close();
+  });
 };
 
 // CLI command
@@ -214,15 +288,15 @@ if (command === 'setup-pipeline') {
   saveChain();
 } else if (command === 'deletechain') {
   deleteChain();
-} else if (command === 'setuptruffle') {
+} else if (command === 'setuphardhat') {
   const contractName = process.argv[3];
   const chainName = process.argv[4];
   
   if (!contractName || !chainName) {
     console.log(chalk.red('Error: Please provide the contract name and chain name.'));
-    console.log('Usage: lumen-safe setuptruffle <contract_name> <chain_name>');
+    console.log('Usage: lumen-safe setuphardhat <contract_name> <chain_name>');
   } else {
-    setupTruffleWorkflow(contractName, chainName);
+    setupHardhatWorkflow(contractName, chainName);
   }
 } else if (command === 'backupFiles') {
   backupFiles();
