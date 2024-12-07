@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const shell = require('shelljs');
 const fs = require('fs');
 const { backupFiles } = require('./backup');
+
 const figlet = require('figlet');
 const path = require('path');
 const os = require('os');
