@@ -1,7 +1,7 @@
 {
   "name": "lumen-safe",
-  "version": "1.0.37",
-  "description": "A package to set up CI/CD pipeline for backing up Web3 files to Lighthouse storage.",
+  "version": "1.0.48",
+  "description": "A package to set up CI/CD pipeline for backing up Web3 files to Walrus storage.",
   "main": "index.js",
   "bin": {
     "lumen-safe": "./index.js"

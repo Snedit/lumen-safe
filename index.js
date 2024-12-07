@@ -53,7 +53,7 @@ const setupLighthousePipeline = () => {
   }
 
   const workflowContent = `
-name: Backup to Lighthouse
+name: Backup to WALRUS
 on: [push]
 jobs:
   backup:
@@ -64,7 +64,7 @@ jobs:
         with:
           node-version: '18'
       - run: npm install -g lumen-safe
-      - run: lumen-safe backup
+      - run: lumen-safe backupFiles
     env:
       LIGHTHOUSE_API_KEY: \${{ secrets.LIGHTHOUSE_API_KEY }}
       CONTRACT_ADDRESS: \${{ secrets.CONTRACT_ADDRESS }}
@@ -81,12 +81,12 @@ jobs:
 };
 
 const removeLighthousePipeline = () => {
-  const workflowPath = '.github/workflows/lighthouse.yml';
+  const workflowPath = '.github/workflows/walrus.yml';
   if (fs.existsSync(workflowPath)) {
     fs.unlinkSync(workflowPath);
-    console.log(chalk.redBright('Lighthouse workflow removed.'));
+    console.log(chalk.redBright('Walrus workflow removed.'));
   } else {
-    console.log(chalk.yellow('No Lighthouse workflow found to remove.'));
+    console.log(chalk.yellow('No Walrus workflow found to remove.'));
   }
 };
 
@@ -162,10 +162,10 @@ const displayHelp = () => {
   console.log(chalk.bold.white('\nPipeline Setup Commands:'));
   console.log(chalk.blueBright(`
   lumen-safe setup-pipeline
-    - Sets up the Lighthouse GitHub Actions workflow for automatic backups.
+    - Sets up the Walrus GitHub Actions workflow for automatic backups.
   
   lumen-safe remove-pipeline
-    - Removes the Lighthouse GitHub Actions workflow.
+    - Removes the Walrus GitHub Actions workflow.
 
   lumen-safe armor-on
     - Activates the Slither security analysis workflow for smart contracts.
@@ -373,6 +373,8 @@ if (command === 'setup-pipeline') {
   } else {
     setupTruffleWorkflow(contractName, chainName);
   }
+} else if (command === 'backupFiles') {
+  backupFiles();
 } else if (command === 'help') {
   displayHelp();
 } else if (command === 'credits') {
