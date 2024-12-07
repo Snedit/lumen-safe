@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-
+const shell = require('shelljs');
 const fs = require('fs');
-const chalk = require('chalk');
-require('dotenv').config()
 const { backupFiles } = require('./backup');
 const figlet = require('figlet');
 const path = require('path');
@@ -51,6 +49,7 @@ const setupLighthousePipeline = () => {
     console.log(`Created '.github/workflows' directory.`);
     console.log("help us walrus!");
   }
+
 
   const workflowContent = `
 name: Backup to WALRUS
@@ -196,159 +195,8 @@ const displayHelp = () => {
   console.log(chalk.yellowBright('\nFor further details, refer to the documentation or contact support.'));
 };
 
-
-const configPath = path.join(os.homedir(), 'lumen_safe_config.json');
-
-// Helper to load the config
-const loadConfig = () => {
-  if (fs.existsSync(configPath)) {
-    return JSON.parse(fs.readFileSync(configPath));
-  }
-  return { email: null, networks: {} };
-};
-
-// Helper to save the config
-const saveConfig = (config) => {
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-};
-
-const setupCredentials = () => {
-  const config = loadConfig();
-
-  const readline = require('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  rl.question('Enter your email ID: ', (email) => {
-    console.log(`You entered: ${email}`);
-    rl.question('Confirm saving this email ID (yes/no)? ', (confirmation) => {
-      if (confirmation.toLowerCase() === 'yes') {
-        config.email = email;
-        saveConfig(config);
-        console.log(chalk.greenBright('Email ID saved successfully!'));
-      } else {
-        console.log(chalk.yellow('Email ID not saved.'));
-      }
-      rl.close();
-    });
-  });
-};
-
-
-const saveChain = () => {
-  const config = loadConfig();
-
-  const readline = require('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  rl.question('Enter network name: ', (networkName) => {
-    rl.question('Enter network ID: ', (networkID) => {
-      rl.question('Enter RPC URL: ', (rpcURL) => {
-        config.networks[networkName] = { networkID, rpcURL };
-        saveConfig(config);
-        console.log(chalk.greenBright(`Network "${networkName}" saved successfully!`));
-        rl.close();
-      });
-    });
-  });
-};
-
-
-const deleteChain = () => {
-  const config = loadConfig();
-
-  const readline = require('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  console.log(chalk.cyan('Saved Networks:'));
-  Object.keys(config.networks).forEach((network, idx) => {
-    console.log(`${idx + 1}. ${network}`);
-  });
-
-  rl.question('Enter the name of the network to delete: ', (networkName) => {
-    if (config.networks[networkName]) {
-      delete config.networks[networkName];
-      saveConfig(config);
-      console.log(chalk.greenBright(`Network "${networkName}" deleted successfully!`));
-    } else {
-      console.log(chalk.red(`Network "${networkName}" not found.`));
-    }
-    rl.close();
-  });
-};
-
-
-const setupTruffle = (contractName, chainName) => {
-  const config = loadConfig();
-
-  if (!config.email) {
-    console.log(chalk.red('Email ID not found. Please run "lumen-safe setupcreds" first.'));
-    return;
-  }
-
-  if (!config.networks[chainName]) {
-    console.log(chalk.red(`Network "${chainName}" not found. Please run "lumen-safe savechain" first.`));
-    return;
-  }
-
-  const workflowsDir = '.github/workflows';
-  const truffleWorkflowPath = `${workflowsDir}/deploy_truffle.yml`;
-
-  const networkConfig = config.networks[chainName];
-  const workflowContent = `
-name: Deploy Smart Contract
-on: 
-  push:
-    branches: [ dev, main ]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: npm install
-      - name: Deploy contract
-        run: |
-          echo 'Deploying contract...'
-          npx hardhat run scripts/deploy.js --network ${chainName}
-    env:
-      PRIVATE_KEY: \${{ secrets.PRIVATE_KEY }}
-      RPC_URL: '${networkConfig.rpcURL}'
-
-  notify:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Send Email
-        run: |
-          echo "Deployment Details" | mail -s "Deployment Status" ${config.email}
-`;
-
-  if (!fs.existsSync(workflowsDir)) {
-    fs.mkdirSync(workflowsDir, { recursive: true });
-  }
-
-  fs.writeFileSync(truffleWorkflowPath, workflowContent);
-  console.log(chalk.greenBright(`GitHub Actions workflow for "${contractName}" on "${chainName}" created successfully!`));
-};
-
-
-
+// CLI command
 const command = process.argv[2];
-
 if (command === 'setup-pipeline') {
   setupLighthousePipeline();
 } else if (command === 'remove-pipeline') {

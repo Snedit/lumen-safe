@@ -4,7 +4,7 @@
   "description": "A package to set up CI/CD pipeline for backing up Web3 files to Walrus storage.",
   "main": "index.js",
   "bin": {
-    "lumen-safe": "./index.js"
+    "lumen-safe": "index.js"
   },
   "scripts": {
     "backup": "node backup.js"
